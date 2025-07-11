@@ -46,6 +46,10 @@ class _OmitTypeAnnotation:
 Omit = Annotated[_Omit, _OmitTypeAnnotation]
 Headers: TypeAlias = Mapping[str, Union[str, Omit]]
 
+@dataclass
+class MCPToolChoice:
+    server_label: str
+    name: str
 
 @dataclass
 class ModelSettings:
@@ -70,7 +74,7 @@ class ModelSettings:
     presence_penalty: float | None = None
     """The presence penalty to use when calling the model."""
 
-    tool_choice: Literal["auto", "required", "none"] | str | None = None
+    tool_choice: Literal["auto", "required", "none"] | str | MCPToolChoice | None = None
     """The tool choice to use when calling the model."""
 
     parallel_tool_calls: bool | None = None

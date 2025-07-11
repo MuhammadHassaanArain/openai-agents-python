@@ -25,6 +25,7 @@ from ..exceptions import UserError
 from ..handoffs import Handoff
 from ..items import ItemHelpers, ModelResponse, TResponseInputItem
 from ..logger import logger
+from ..model_settings import MCPToolChoice
 from ..tool import (
     CodeInterpreterTool,
     ComputerTool,
@@ -303,19 +304,16 @@ class ConvertedTools:
 class Converter:
     @classmethod
     def convert_tool_choice(
-        cls, tool_choice: Literal["auto", "required", "none"] | str | dict[str, Any] | None
+        cls, tool_choice: Literal["auto", "required", "none"] | str | MCPToolChoice | None
     ) -> response_create_params.ToolChoice | NotGiven:
         if tool_choice is None:
             return NOT_GIVEN
-        elif isinstance(tool_choice, dict):
-            if tool_choice.get("type") == "mcp":
-                return {
-                    "server_label": tool_choice.get("server_label") or "mcp",
-                    "type": "mcp",
-                    "name": tool_choice.get("name"),
-                }
-            else:
-                raise UserError(f"Unknown tool choice: {tool_choice}")
+        elif isinstance(tool_choice, MCPToolChoice):
+            return {
+                "server_label": tool_choice.server_label,
+                "type": "mcp",
+                "name": tool_choice.name,
+            }
         elif tool_choice == "required":
             return "required"
         elif tool_choice == "auto":
@@ -343,10 +341,9 @@ class Converter:
                 "type": "code_interpreter",
             }
         elif tool_choice == "mcp":
-            return {
-                "server_label": "mcp",
-                "type": "mcp",
-            }
+            # Note that this is still here for backwards compatibility,
+            # but migrating to MCPToolChoice is recommended.
+            return { "type": "mcp" }
         else:
             return {
                 "type": "function",
